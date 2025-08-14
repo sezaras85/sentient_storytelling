@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Storytelling Bot</title>
+    <!-- Google Fonts - Poppins fontunu ekledik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Koyu tema için genel stiller */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* Başlık kapsayıcısı stili */
+        .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px; /* Resim ile başlık arasına boşluk ekler */
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Başlık stili */
+        h1 {
+            color: #bb86fc;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        /* Maskot resmi stili */
+        .mascot-icon {
+            width: 80px; /* Resmi daha görünür hale getirmek için boyutu büyütüldü */
+            height: auto;
+        }
+
+        /* Hikaye kapsayıcı stili */
+        #story-container {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 250px;
+            margin-bottom: 25px;
+            white-space: pre-wrap;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        /* Kullanıcı ve bot mesaj stilleri */
+        .user-input, .bot-response {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            word-wrap: break-word;
+        }
+        .user-input {
+            text-align: right;
+            color: #8be9fd;
+            background-color: #2a2a2a;
+        }
+        .bot-response {
+            text-align: left;
+            color: #50fa7b;
+            background-color: #2a2a2a;
+        }
+
+        /* Seçenekler kapsayıcısı stili */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        /* Buton ve giriş elemanları stilleri */
+        button {
+            background-color: #bb86fc;
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            background-color: #986fe6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+        button:active {
+            background-color: #7b58c7;
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            font-family: 'Poppins', sans-serif;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease;
+        }
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #bb86fc;
+        }
+
+        label {
+            margin-bottom: 5px;
+            display: block;
+            color: #a0a0a0;
+        }
+
+        /* Bölüm gizleme/gösterme stilleri */
+        #start-section, #continue-section, #revision-section, #summary-container {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Yükleme mesajı stili */
+        #loading-message {
+            text-align: center;
+            font-style: italic;
+            color: #a0a0a0;
+            margin-top: 10px;
+        }
+
+        /* Özelleştirilmiş devam et butonu */
+        #custom-choice-input {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-container">
+        <!-- Base64'e dönüştürülmüş resim kodu -->
+        <img src="data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAADbElEQVR42u2cMUsbURSGk7sTKYxIKJtF6EItQhG5/wFmQpZkR4c60a2tLIRqU+k/UGzQYqXbEItIqYhU2bJt0m2a8YnB8S5v9b0n33vu+d11vvdD8wOHD//92F9/f8M0zQj+669f4X8L3pD/TfD/h7dJ1r7gW5/A31lP+rL5F/QG+N8P3p7+6+B8D/G/x3BvE/wvg/k/xXv+0dF9fXm7179836+vrZ7x+jR9lWf9G+gGqg+hR2/l7G4V/fW98d7+xG9D+Mvg1L9fW1pY8PDx817+V+v/t+u3bt3n6168v8g25J2/6o/1eAP8dD/2/25h4734v+L+N+j/A933A9/2u4v4v+P9b/B+b9D9/8F9eWvXv27bN5ufnWfnvE/3r3g+gq4v4v+Hj/xL3+lH+yvcv3y/n61/N5+fna/32j/59wB9Q6P+7+H/f+3V2N/fXvX33r8/m5+c7+fuW/kF+x8P47+p2v4fA/w4E/3fL+58f/1l9+v21//76L7/g/w0/vB/2/n1CgP9fC+b+O9C+B/jfRvf64X/F/7r32XvjP1D8hYt+XgB7A/6P5Wn0f6l9l+c9sO+B+j/W1+u3b19b7f5F/7n9+kX/w/D35Xk695C/b3l9c/6t3/6z783/Bf/H63d/f5H/r9y+eLfO37+Pj96v8u78g64z8oH+7/c/x/kXf8+d379s/wX8c6T/D8x5+h/A9wHfR/A9Bv/77x8p1//9/w1d5+h/iP0fJ9w93/fR7z182w/c57M+r4+f/v7P/9H/h7i/97/8r6C/78v/7u79e/j0P8+f/eP7sL/f8D22vM/vV8x8z9A/kP87/w2n4D/7//+j817/7+QfP9i+v6f8+t//xX/c/x/f/p/3b/b1v9Tf+xTf9zX/34/jXf4eH9/f+y0/775F/3z/4+/x/wffz/B/+O+c6pE2tOAAAAAElFTkSuQmCC" alt="Dobby Mascot" class="mascot-icon">
+        <h1>Interactive Storytelling Bot</h1>
+    </div>
+    
+    <div id="story-container">Start your story by typing the first sentence.</div>
+
+    <div id="start-section">
+        <label for="story-opening">Story Opening:</label><br>
+        <input type="text" id="story-opening" placeholder="e.g., 'A lone knight woke up in a dark forest...'" style="width: 100%; padding: 8px;"><br><br>
+        <label for="story-type">Story Genre:</label>
+        <select id="story-type">
+            <option value="horror">Horror</option>
+            <option value="sci-fi">Sci-Fi</option>
+            <option value="fantasy">Fantasy</option>
+            <option value="mystery">Mystery</option>
+            <option value="comedy">Comedy</option>
+        </select>
+        <button onclick="startStory()">Start</button>
+    </div>
+
+    <div id="continue-section" style="display: none;">
+        <div id="options-container"></div>
+    </div>
+
+    <div id="revision-section" style="display: none; margin-top: 20px;">
+        <label for="revision-input">Revision Command (e.g., "Make it scarier."):</label><br>
+        <input type="text" id="revision-input" placeholder="e.g., 'Make it more dramatic and serious.'" style="width: 100%; padding: 8px;"><br>
+        <button onclick="reviseStory()">Revise</button>
+    </div>
+
+    <button onclick="getSummary()" style="margin-top: 20px;">Summarize Story</button>
+    <div id="summary-container" style="margin-top: 10px; display: none;"></div>
+
+    <script>
+        const storyContainer = document.getElementById('story-container');
+        const startSection = document.getElementById('start-section');
+        const continueSection = document.getElementById('continue-section');
+        const optionsContainer = document.getElementById('options-container');
+        const revisionSection = document.getElementById('revision-section');
+        const summaryContainer = document.getElementById('summary-container');
+        let currentChoices = [];
+
+        async function startStory() {
+            const userInput = document.getElementById('story-opening').value;
+            const storyType = document.getElementById('story-type').value;
+            if (!userInput) {
+                alert('Please enter your story opening.');
+                return;
+            }
+
+            storyContainer.innerHTML = '';
+            
+            const userDiv = document.createElement('div');
+            userDiv.className = 'user-input';
+            userDiv.innerHTML = `<span>**You:** ${userInput}</span>`;
+            storyContainer.appendChild(userDiv);
+            
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loading-message';
+            loadingDiv.textContent = 'Generating story...';
+            storyContainer.appendChild(loadingDiv);
+            
+            const response = await fetch('/start_story', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userInput, storyType })
+            });
+
+            const data = await response.json();
+            
+            storyContainer.removeChild(loadingDiv);
+            displayBotResponse(data.story);
+            
+            startSection.style.display = 'none';
+            continueSection.style.display = 'block';
+            revisionSection.style.display = 'block';
+        }
+        
+        function displayBotResponse(storyText) {
+            const parts = storyText.split(/\n(\d\)) /);
+            const mainStory = parts[0];
+            
+            const botResponseDiv = document.createElement('div');
+            botResponseDiv.className = 'bot-response';
+            botResponseDiv.innerHTML = `<span>**Bot:**</span> ${mainStory}`;
+            storyContainer.appendChild(botResponseDiv);
+            
+            currentChoices = [];
+            optionsContainer.innerHTML = '';
+            
+            for (let i = 1; i < parts.length; i += 2) {
+                const choiceText = parts[i] + parts[i + 1];
+                currentChoices.push(choiceText.trim());
+                const button = document.createElement('button');
+                button.textContent = choiceText.trim();
+                button.onclick = () => continueStory(parseInt(parts[i].replace(')', '')));
+                optionsContainer.appendChild(button);
+            }
+            
+            const customChoiceDiv = document.createElement('div');
+            customChoiceDiv.style.marginTop = '10px';
+            const customInput = document.createElement('input');
+            customInput.type = 'text';
+            customInput.id = 'custom-choice-input';
+            customInput.placeholder = 'Or write your own continuation...';
+            customInput.style.width = '100%';
+            customChoiceDiv.appendChild(customInput);
+            
+            const continueButton = document.createElement('button');
+            continueButton.textContent = 'Continue';
+            continueButton.style.marginTop = '5px';
+            continueButton.onclick = () => {
+                const customText = document.getElementById('custom-choice-input').value;
+                if (customText) {
+                    continueStory(customText);
+                } else {
+                    alert('Please enter your continuation.');
+                }
+            };
+            customChoiceDiv.appendChild(continueButton);
+            
+            optionsContainer.appendChild(customChoiceDiv);
+        }
+
+        async function continueStory(choice) {
+            let choiceText;
+            if (typeof choice === 'number') {
+                choiceText = currentChoices[choice - 1];
+            } else {
+                choiceText = choice;
+            }
+            
+            const userDiv = document.createElement('div');
+            userDiv.className = 'user-input';
+            userDiv.innerHTML = `<span>**You:** ${choiceText}</span>`;
+            storyContainer.appendChild(userDiv);
+            optionsContainer.innerHTML = 'Continuing story...';
+
+            const response = await fetch('/continue_story', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ choice: choiceText })
+            });
+
+            const data = await response.json();
+            
+            optionsContainer.innerHTML = '';
+            displayBotResponse(data.story);
+        }
+        
+        async function reviseStory() {
+            const revisionPrompt = document.getElementById('revision-input').value;
+            if (!revisionPrompt) {
+                alert('Please enter a revision command.');
+                return;
+            }
+
+            const revisionDiv = document.createElement('div');
+            revisionDiv.className = 'user-input';
+            revisionDiv.style.color = '#ef4444';
+            revisionDiv.innerHTML = `<span>**Revision Command:** ${revisionPrompt}</span>`;
+            storyContainer.appendChild(revisionDiv);
+            
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loading-message';
+            loadingDiv.textContent = 'Revising story...';
+            storyContainer.appendChild(loadingDiv);
+
+            const response = await fetch('/revise_story', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ revisionPrompt })
+            });
+
+            const data = await response.json();
+            
+            storyContainer.removeChild(loadingDiv);
+            
+            const lastBotResponseDiv = storyContainer.querySelector('.bot-response:last-child');
+            if (lastBotResponseDiv) {
+                const revisedParts = data.story.split(/\n(\d\)) /);
+                const revisedStoryText = revisedParts[0];
+
+                lastBotResponseDiv.innerHTML = `<span>**Bot:**</span> ${revisedStoryText}`;
+                
+                optionsContainer.innerHTML = '';
+                currentChoices = [];
+                for (let i = 1; i < revisedParts.length; i += 2) {
+                    const choiceText = revisedParts[i] + revisedParts[i + 1];
+                    currentChoices.push(choiceText.trim());
+                    const button = document.createElement('button');
+                    button.textContent = choiceText.trim();
+                    button.onclick = () => continueStory(parseInt(revisedParts[i].replace(')', '')));
+                    optionsContainer.appendChild(button);
+                }
+                
+                const customChoiceDiv = document.createElement('div');
+                customChoiceDiv.style.marginTop = '10px';
+                const customInput = document.createElement('input');
+                customInput.type = 'text';
+                customInput.id = 'custom-choice-input';
+                customInput.placeholder = 'Or write your own continuation...';
+                customInput.style.width = '100%';
+                customChoiceDiv.appendChild(customInput);
+                
+                const continueButton = document.createElement('button');
+                continueButton.textContent = 'Continue';
+                continueButton.style.marginTop = '5px';
+                continueButton.onclick = () => {
+                    const customText = document.getElementById('custom-choice-input').value;
+                    if (customText) {
+                        continueStory(customText);
+                    } else {
+                        alert('Please enter your continuation.');
+                    }
+                };
+                customChoiceDiv.appendChild(continueButton);
+                
+                optionsContainer.appendChild(customChoiceDiv);
+            } else {
+                displayBotResponse(data.story);
+            }
+        }
+
+        async function getSummary() {
+            summaryContainer.style.display = 'block';
+            summaryContainer.innerHTML = '<span id="loading-message">Summarizing story...';
+
+            const response = await fetch('/get_summary');
+            const data = await response.json();
+            summaryContainer.innerHTML = `<strong>Summary:</strong> ${data.summary}`;
+        }
+    </script>
+</body>
+</html>
+
